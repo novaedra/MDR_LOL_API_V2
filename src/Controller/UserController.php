@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Nette\Utils\Json;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,7 +32,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/api/request/summoner/{summonerName}", name="summonerAPI")
+     * @Route("/api/user/summoner/{summonerName}", name="summonerAPI")
      */
     public function summonerAPI($summonerName): JsonResponse
     {
@@ -47,11 +48,11 @@ class UserController extends AbstractController
             return JsonResponse::create('no summoner with this username', '404');
         }
 
-        return JsonResponse::create($summoner, '200');
+        return JsonResponse::create($summoner, 200);
     }
 
     /**
-     * @Route("/api/request/match/{summonerID}/{pagination}", name="matchAPI")
+     * @Route("/api/user/match/{summonerID}/{pagination}", name="matchAPI")
      */
     public function matchAPI($summonerID, $pagination = 0): JsonResponse
     {
@@ -63,19 +64,21 @@ class UserController extends AbstractController
         try {
             $matchList = $api->getMatchlistByAccount($summonerID, null, null, null, null, null, 0 + ($pagination * 5), 5 + ($pagination * 5));
         } catch (\Throwable $e) {
-            return JsonResponse::create($e, '404');
+            return JsonResponse::create($e, 404);
         }
 
-        $i = 0;
+        $i = 1;
         foreach ($matchList->matches as $game) {
-            $games[] = $game;
+            $games['match : '.$i] = $game;
+            $games['stats : '.$i] = $api->getMatch($game->gameId);
+            $i++;
         }
 
-        return JsonResponse::create($games, '200');
+        return JsonResponse::create($games, 200);
     }
 
     /**
-     * @Route("/api/request/register", name="register", methods="POST")
+     * @Route("/api/user/register", name="register", methods="POST")
      * @param Request $request
      * @return JsonResponse
      */
@@ -90,28 +93,37 @@ class UserController extends AbstractController
                 LeagueAPI::SET_REGION => Region::EUROPE_WEST,
             ]);
 
-            try {
-                $riotUser = $api->getSummonerByName($data['username']);
-            } catch (\Throwable $e) {
-                return JsonResponse::create('no summoner with this username', '404');
-            }
+            $repository = $this->getDoctrine()->getRepository(Utilisateur::class);
+            $emailTaken = $repository->findOneBy([
+                'email' => 'mail9@gmail.com',
+            ]);
+            if ($emailTaken === null) {
+                try {
+                    $riotUser = $api->getSummonerByName($data['username']);
+                } catch (\Throwable $e) {
+                    return JsonResponse::create('no summoner with this username', 404);
+                }
 
-            $user = new Utilisateur();
-            $user->setUsername($data['username']);
-            $user->setEmail($data['email']);
-            $user->setPassword($data['password']);
-            $user->setRiotAccountId($riotUser->accountId);
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-            return JsonResponse::create('user created','200');
+                $user = new Utilisateur();
+                $user->setUsername($data['username']);
+                $user->setEmail($data['email']);
+                $user->setPassword($data['password']);
+                $user->setRiotAccountId($riotUser->accountId);
+                $this->entityManager->persist($user);
+                $this->entityManager->flush();
+                return JsonResponse::create('user created','200');
+            }
+            else {
+                return JsonResponse::create('email already taken', 400);
+            }
         }
         else {
-            return JsonResponse::create('username, email and password are needed','400');
+            return JsonResponse::create('username, email and password are needed',400);
         }
     }
 
     /**
-     * @Route("/api/request/login", name="login", methods="POST")
+     * @Route("/api/user/login", name="login", methods="POST")
      * @param Request $request
      * @return JsonResponse
      */
@@ -134,18 +146,18 @@ class UserController extends AbstractController
                 $user = json_decode($user, true);
 
                 if ($user['active'] === true) {
-                    return JsonResponse::create($user,'200');
+                    return JsonResponse::create($user,200);
                 }
                 else {
-                    return JsonResponse::create('this user is ban','404');
+                    return JsonResponse::create('this user is ban',404);
                 }
             }
             else {
-                return JsonResponse::create('bad password','400');
+                return JsonResponse::create('bad password',400);
             }
         }
         else {
-            return JsonResponse::create('no user find','404');
+            return JsonResponse::create('no user find',404);
         }
     }
 }
