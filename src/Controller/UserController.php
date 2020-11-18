@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use RiotAPI\LeagueAPI\LeagueAPI;
 use RiotAPI\LeagueAPI\Definitions\Region;
@@ -50,9 +51,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/api/request/match/{summonerID}", name="matchAPI")
+     * @Route("/api/request/match/{summonerID}/{pagination}", name="matchAPI")
      */
-    public function matchAPI($summonerID): JsonResponse
+    public function matchAPI($summonerID, $pagination = 0): JsonResponse
     {
         $api = new LeagueAPI([
             LeagueAPI::SET_KEY    => getenv('RIOT_KEY'),
@@ -60,12 +61,12 @@ class UserController extends AbstractController
         ]);
 
         try {
-            $matchList = $api->getMatchlistByAccount($summonerID);
+            $matchList = $api->getMatchlistByAccount($summonerID, null, null, null, null, null, 0 + ($pagination * 5), 5 + ($pagination * 5));
         } catch (\Throwable $e) {
-            $matchList = $e;
-            return JsonResponse::create($matchList, '404');
+            return JsonResponse::create($e, '404');
         }
 
+        $i = 0;
         foreach ($matchList->matches as $game) {
             $games[] = $game;
         }
@@ -90,7 +91,7 @@ class UserController extends AbstractController
             ]);
 
             try {
-                $api->getSummonerByName($data['username']);
+                $riotUser = $api->getSummonerByName($data['username']);
             } catch (\Throwable $e) {
                 return JsonResponse::create('no summoner with this username', '404');
             }
@@ -99,6 +100,7 @@ class UserController extends AbstractController
             $user->setUsername($data['username']);
             $user->setEmail($data['email']);
             $user->setPassword($data['password']);
+            $user->setRiotAccountId($riotUser->accountId);
             $this->entityManager->persist($user);
             $this->entityManager->flush();
             return JsonResponse::create('user created','200');

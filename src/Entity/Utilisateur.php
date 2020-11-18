@@ -96,6 +96,11 @@ class Utilisateur
      */
     private $reports_take;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $riotAccountId;
+
     public function __construct()
     {
         $this->tournois = new ArrayCollection();
@@ -336,6 +341,18 @@ class Utilisateur
                 $reportsTake->setUserAccused(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRiotAccountId(): ?string
+    {
+        return $this->riotAccountId;
+    }
+
+    public function setRiotAccountId(string $riotAccountId): self
+    {
+        $this->riotAccountId = $riotAccountId;
 
         return $this;
     }
