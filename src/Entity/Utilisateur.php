@@ -101,6 +101,7 @@ class Utilisateur
         $this->tournois = new ArrayCollection();
         $this->reports_give = new ArrayCollection();
         $this->reports_take = new ArrayCollection();
+        $this->created_at = new \DateTime();
     }
 
     public function getId(): ?int
@@ -139,7 +140,7 @@ class Utilisateur
 
     public function setPassword(string $password): self
     {
-        $this->password = $password;
+        $this->password = password_hash($password, PASSWORD_DEFAULT);
 
         return $this;
     }
