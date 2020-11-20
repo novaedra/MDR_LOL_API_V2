@@ -34,7 +34,7 @@ class UserController extends AbstractController
     /**
      * @Route("/api/user/summoner/{summonerName}", name="summonerAPI")
      */
-    public function summonerAPI($summonerName): JsonResponse
+    public function summonerAPI($summonerName): JsonResponse //need username and return summoner info
     {
         $api = new LeagueAPI([
             LeagueAPI::SET_KEY    => getenv('RIOT_KEY'),
@@ -52,9 +52,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/api/user/match/{summonerID}/{pagination}", name="matchAPI")
+     * @Route("/api/user/match/{RIOTaccountID}/{pagination}", name="matchAPI")
      */
-    public function matchAPI($summonerID, $pagination = 0): JsonResponse
+    public function matchAPI($RIOTaccountID, $pagination = 0): JsonResponse //need riotAccountID and return 5 matches
     {
         $api = new LeagueAPI([
             LeagueAPI::SET_KEY    => getenv('RIOT_KEY'),
@@ -62,7 +62,7 @@ class UserController extends AbstractController
         ]);
 
         try {
-            $matchList = $api->getMatchlistByAccount($summonerID, null, null, null, null, null, 0 + ($pagination * 5), 5 + ($pagination * 5));
+            $matchList = $api->getMatchlistByAccount($RIOTaccountID, null, null, null, null, null, 0 + ($pagination * 5), 5 + ($pagination * 5));
         } catch (\Throwable $e) {
             return JsonResponse::create($e, 404);
         }
@@ -82,7 +82,7 @@ class UserController extends AbstractController
      * @param Request $request
      * @return JsonResponse
      */
-    public function register(Request $request): JsonResponse
+    public function register(Request $request): JsonResponse //register with RIOT_username and email/password
     {
         $data = json_decode($request->getContent(),true);
 

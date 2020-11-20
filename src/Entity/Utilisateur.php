@@ -59,27 +59,7 @@ class Utilisateur
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $score_top;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $score_jungle;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $score_middle;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $score_support;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $score_bottom;
+    private $score;
 
     /**
      * @ORM\ManyToMany(targetEntity=Tournois::class, mappedBy="user_tournois")
@@ -198,62 +178,14 @@ class Utilisateur
         return $this;
     }
 
-    public function getScoreTop(): ?int
+    public function getScore(): ?int
     {
-        return $this->score_top;
+        return $this->score;
     }
 
-    public function setScoreTop(?int $score_top): self
+    public function setScore(?int $score): self
     {
-        $this->score_top = $score_top;
-
-        return $this;
-    }
-
-    public function getScoreJungle(): ?int
-    {
-        return $this->score_jungle;
-    }
-
-    public function setScoreJungle(?int $score_jungle): self
-    {
-        $this->score_jungle = $score_jungle;
-
-        return $this;
-    }
-
-    public function getScoreMiddle(): ?int
-    {
-        return $this->score_middle;
-    }
-
-    public function setScoreMiddle(?int $score_middle): self
-    {
-        $this->score_middle = $score_middle;
-
-        return $this;
-    }
-
-    public function getScoreSupport(): ?int
-    {
-        return $this->score_support;
-    }
-
-    public function setScoreSupport(?int $score_support): self
-    {
-        $this->score_support = $score_support;
-
-        return $this;
-    }
-
-    public function getScoreBottom(): ?int
-    {
-        return $this->score_bottom;
-    }
-
-    public function setScoreBottom(?int $score_bottom): self
-    {
-        $this->score_bottom = $score_bottom;
+        $this->score = $score;
 
         return $this;
     }
